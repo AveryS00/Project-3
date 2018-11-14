@@ -1,59 +1,74 @@
 import java.util.*;
+import java.util.regex.Pattern;
 import java.io.File;
 import java.io.IOException;
 
 public class IMDBGraphImpl implements IMDBGraph {
 	final Scanner _actorScanner;
 	final Scanner _actressScanner;
-	final List<Node> _actorGraph;
-	final List<Node> _movieGraph;
-	
+	final Map<String, IMDBNode> _actorGraph;
+	final Map<String, IMDBNode> _movieGraph;
+
 	public IMDBGraphImpl(String actorsFileName, String actressesFileName) throws IOException {
 		_actorScanner = new Scanner(new File(actorsFileName), "ISO-8859-1");
 		_actressScanner = new Scanner(new File(actressesFileName));
-		_actorGraph = new ArrayList<Node>();
-		_movieGraph = new ArrayList<Node>();
+		_actorGraph = new HashMap<String, IMDBNode>();
+		_movieGraph = new HashMap<String, IMDBNode>();
 		parseData();
 	}
-	
+
 	/**
-	 * TODO
-	 * uses the given IMDB files and filters out information such as actors, actresses and movies
-	 * and places them into nodes which are then put into a graph in ArrayList format.
+	 * TODO uses the given IMDB files and filters out information such as
+	 * actors, actresses and movies and places them into nodes which are then
+	 * put into a graph in ArrayList format.
 	 */
 	private void parseData() {
-		
+		while (_actorScanner.hasNextLine()) {
+
+			final String currentActorString = _actorScanner.nextLine();
+			// final String currentActressString = _actressScanner.nextLine();
+			if (currentActorString.equals("THE ACTORS LIST")) {
+				IMDBNode newActor = new IMDBNode(currentActorString.substring(0, currentActorString.indexOf(" ")));
+				_actorGraph.put(newActor.getName(), newActor);
+				IMDBNode newMovie = new IMDBNode(
+						currentActorString.substring(currentActorString.indexOf(" "), currentActorString.indexOf(")")));
+				if (!_movieGraph.containsValue(newMovie))
+					_movieGraph.put(newMovie.getName(), newMovie);
+				else
+					_movieGraph.get(newMovie.getName()).addNeighbor(newActor);
+				if (_actorScanner.nextLine().contains("\t")) {
+					String newMovieString = _actorScanner.nextLine();
+					while (newMovieString.contains("\t")) {
+						newMovieString = newMovieString.replaceFirst("\t", "");
+					}
+					if (!newMovieString.contains("(TV)")
+							&& !newMovieString.substring(0, newMovieString.indexOf(" ")).contains("\"")) {
+						IMDBNode newMovieCont = new IMDBNode(newMovieString.substring(0,
+								currentActorString.indexOf(")")));
+						if (!_movieGraph.containsValue(newMovieCont))
+							_movieGraph.put(newMovieCont.getName(), newMovieCont);
+					}
+				}
+
+			}
+
+		}
 	}
-	
+
 	public Collection<? extends Node> getActors() {
-		return _actorGraph;
+		return _actorGraph.values();
 	}
-	
+
 	public Collection<? extends Node> getMovies() {
-		return _movieGraph;
+		return _movieGraph.values();
 	}
-	
+
 	public Node getActor(String name) {
-		return getNode(_actorGraph, name);
+		return _actorGraph.get(name);
 	}
 
 	public Node getMovie(String name) {
-		return getNode(_movieGraph, name);
+		return _movieGraph.get(name);
 	}
-	
-	/**
-	 * Abstract method getNode, finds a node with a specified name in a list and returns that node
-	 * @param graph | the graph to search through
-	 * @param name | the name of the node to search for
-	 * @return the full node with the name given in parameter
-	 */
-	private static Node getNode(List<Node> graph, String name) {
-		Node node = null;
-		for (int i = 0; i < graph.size(); i++) {
-			if (name.equals(graph.get(i).getName())) {
-				node = graph.get(i);
-			}
-		}
-		return node;
-	}
+
 }

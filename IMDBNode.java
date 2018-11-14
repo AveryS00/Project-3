@@ -4,10 +4,10 @@ public class IMDBNode implements Node {
 	private String _name;
 	private List<Node> _neighbors;
 	
-	public IMDBNode(String name, List<Node> neighbors) {
+	public IMDBNode(String name) {
 		_name = name;
-		_neighbors = neighbors;
-	}
+		_neighbors = new ArrayList<Node>();
+		}
 	
 	public String getName() {
 		return _name;
