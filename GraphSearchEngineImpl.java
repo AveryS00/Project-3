@@ -6,6 +6,7 @@ public class GraphSearchEngineImpl implements GraphSearchEngine{
 	public List<Node> findShortestPath(Node s, Node t) {
 		List<Node> visitedNodes = new ArrayList<Node>();
 		Queue<Node> nodesToVisit = new LinkedList<Node>();
+		//Map of distances from the root, key being the node called, value being distance
 		Map<Node, Integer> distanceFromS = new HashMap<Node, Integer>();
 		List<Node> path = null;
 		
@@ -27,6 +28,7 @@ public class GraphSearchEngineImpl implements GraphSearchEngine{
 				}
 				break;
 			} else {
+				//add all node neighbors to the nodesToVisit queue
 				for (Node k : n.getNeighbors()) {
 					if (!visitedNodes.contains(k)) {
 						nodesToVisit.add(k);
