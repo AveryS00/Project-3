@@ -71,4 +71,15 @@ public class GraphPartialTester {
 		}
 		assertTrue(found);
 	}
+	
+	
+	/**
+	 * Test to see if can parse 10,000 lines without crashing or overflowing
+	 * @throws IOException
+	 */
+	@Test
+	public void parsesTenThousandLines() throws IOException {
+		IMDBGraphImpl graphTest = new IMDBGraphImpl("actors_first_10000_lines.list", "actresses_first_10000_lines.list");
+		assertTrue(true);
+	}
 }

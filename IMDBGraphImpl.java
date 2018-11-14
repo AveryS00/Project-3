@@ -1,5 +1,4 @@
 import java.util.*;
-import java.util.regex.Pattern;
 import java.io.File;
 import java.io.IOException;
 
@@ -11,10 +10,11 @@ public class IMDBGraphImpl implements IMDBGraph {
 
 	public IMDBGraphImpl(String actorsFileName, String actressesFileName) throws IOException {
 		_actorScanner = new Scanner(new File(actorsFileName), "ISO-8859-1");
-		_actressScanner = new Scanner(new File(actressesFileName));
+		_actressScanner = new Scanner(new File(actressesFileName), "ISO-8859-1");
 		_actorGraph = new HashMap<String, IMDBNode>();
 		_movieGraph = new HashMap<String, IMDBNode>();
-		parseData();
+		parseData(_actorScanner);
+		parseData(_actressScanner);
 	}
 
 	/**
@@ -22,36 +22,59 @@ public class IMDBGraphImpl implements IMDBGraph {
 	 * actors, actresses and movies and places them into nodes which are then
 	 * put into a graph in ArrayList format.
 	 */
-	private void parseData() {
-		while (_actorScanner.hasNextLine()) {
+	private void parseData(Scanner scanner) {
+		boolean beginParse = false;
+		IMDBNode newActor = null;
+		while (scanner.hasNextLine()) {
 
-			final String currentActorString = _actorScanner.nextLine();
+			String currentLine = scanner.nextLine();
 			// final String currentActressString = _actressScanner.nextLine();
-			if (currentActorString.equals("THE ACTORS LIST")) {
-				IMDBNode newActor = new IMDBNode(currentActorString.substring(0, currentActorString.indexOf(" ")));
-				_actorGraph.put(newActor.getName(), newActor);
-				IMDBNode newMovie = new IMDBNode(
-						currentActorString.substring(currentActorString.indexOf(" "), currentActorString.indexOf(")")));
-				if (!_movieGraph.containsValue(newMovie))
-					_movieGraph.put(newMovie.getName(), newMovie);
-				else
-					_movieGraph.get(newMovie.getName()).addNeighbor(newActor);
-				if (_actorScanner.nextLine().contains("\t")) {
-					String newMovieString = _actorScanner.nextLine();
-					while (newMovieString.contains("\t")) {
-						newMovieString = newMovieString.replaceFirst("\t", "");
+			if (currentLine.equals("----			------")) {
+				beginParse = true;
+			} else if (currentLine.equals("-----------------------------------------------------------------------------")) {
+				beginParse = false;
+			} else if (beginParse == true && !currentLine.equals("")) {
+				if (!currentLine.substring(0, 1).equals("\t")) {
+					if (newActor != null && newActor.getNeighbors().isEmpty()) {
+						_actorGraph.remove(newActor.getName());
 					}
-					if (!newMovieString.contains("(TV)")
-							&& !newMovieString.substring(0, newMovieString.indexOf(" ")).contains("\"")) {
-						IMDBNode newMovieCont = new IMDBNode(newMovieString.substring(0,
-								currentActorString.indexOf(")")));
-						if (!_movieGraph.containsValue(newMovieCont))
-							_movieGraph.put(newMovieCont.getName(), newMovieCont);
+					newActor = new IMDBNode(currentLine.substring(0, currentLine.indexOf("\t")));
+					_actorGraph.put(newActor.getName(), newActor);
+					currentLine = currentLine.substring(currentLine.indexOf("\t"));
+					while (currentLine.contains("\t")) {
+						currentLine = currentLine.replaceFirst("\t", "");
+					}
+					if (!currentLine.contains("(TV)")
+							&& !currentLine.substring(0, 1).contains("\"")) {
+						IMDBNode newMovie = new IMDBNode(
+								currentLine.substring(0, currentLine.indexOf(")") + 1));
+						newMovie.addNeighbor(newActor);
+						if (_movieGraph.get(newMovie.getName()) == null) {
+							_movieGraph.put(newMovie.getName(), newMovie);
+							newActor.addNeighbor(newMovie);
+						} else {
+							_movieGraph.get(newMovie.getName()).addNeighbor(newActor);
+							newActor.addNeighbor(_movieGraph.get(newMovie.getName()));
+						}
+					}
+				} else {
+					while (currentLine.contains("\t")) {
+						currentLine = currentLine.replaceFirst("\t", "");
+					}
+					if (!currentLine.contains("(TV)")
+							&& !currentLine.substring(0, 1).contains("\"")) {
+						IMDBNode newMovie = new IMDBNode(
+								currentLine.substring(0, currentLine.indexOf(")")));
+						if (_movieGraph.get(newMovie.getName()) == null) {
+							_movieGraph.put(newMovie.getName(), newMovie);
+							newActor.addNeighbor(newMovie);
+						} else {
+							_movieGraph.get(newMovie.getName()).addNeighbor(newActor);
+							newActor.addNeighbor(_movieGraph.get(newMovie.getName()));
+						}
 					}
 				}
-
 			}
-
 		}
 	}
 
