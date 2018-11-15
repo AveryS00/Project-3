@@ -19,8 +19,15 @@ public class GraphPartialTester {
 		imdbGraph = new IMDBGraphImpl("actors_test.list", "actresses_test.list");
 		final Node actor1 = imdbGraph.getActor("Actor1");
 		final Node actress2 = imdbGraph.getActor("Actress2");
+		final Node actress1 = imdbGraph.getActor("Actress1");
+		final Node movie1 = imdbGraph.getMovie("Movie1 (2001)");
 		final List<Node> shortestPath = searchEngine.findShortestPath(actor1, actress2);
 		assertNull(shortestPath);  // there is no path between these people
+		List<Node> path1 = new ArrayList<Node>();
+		path1.add(actor1);
+		path1.add(movie1);
+		path1.add(actress1);
+		assertEquals(path1, searchEngine.findShortestPath(actor1, actress1));
 	}
 
 	@Before
@@ -72,6 +79,23 @@ public class GraphPartialTester {
 		assertTrue(found);
 	}
 	
+	@Test
+	/**
+	 * test lists have been modified to include an additional Actor4 and Actor5
+	 * Actor4: Movie4 (2004) (TV) Movie5 (2005) Movie6 (2006)
+	 * Actor5: Movie4 (2004) (TV) Movie2 (2002) Movie6 (2002)
+	 * Additionaly Movie3 (2003) has been added to Actor2 
+	 */
+	public void expandedGraphSearch() {
+		//Go from Actor4 to Actress2
+		List<Node> path = new ArrayList<Node>();
+		path.add(imdbGraph.getActor("Actor4"));
+		path.add(imdbGraph.getMovie("Movie6 (2006)"));
+		path.add(imdbGraph.getActor("Actor5"));
+		path.add(imdbGraph.getMovie("Movie2 (2002)"));
+		path.add(imdbGraph.getActor("Actress2"));
+		assertEquals(path, searchEngine.findShortestPath(imdbGraph.getActor("Actor4"),imdbGraph.getActor("Actress2")));
+	}
 	
 	/**
 	 * Test to see if can parse 10,000 lines without crashing or overflowing
@@ -80,6 +104,31 @@ public class GraphPartialTester {
 	@Test
 	public void parsesTenThousandLines() throws IOException {
 		IMDBGraphImpl graphTest = new IMDBGraphImpl("actors_first_10000_lines.list", "actresses_first_10000_lines.list");
+		assertTrue(true);
+		
+		//Located at Line 3045
+		testFindNode(graphTest.getActors(), "A Heygum, Runa");
+		
+		//TV actor with quotation marks, located at line 2989
+		assertNull(graphTest.getActor("A Camp"));
+		
+		//TV actor with (TV), located at line 2875
+		assertNull(graphTest.getActor("883"));
+		
+		//Located at Line 1366
+		testFindNode(graphTest.getMovies(), "Big Apple (2002)");
+		
+		//TV movie, located at line 931
+		assertNull(graphTest.getMovie("2000 MTV Movie Awards (2000)"));
+	}
+	
+	@Test
+	/**
+	 * Test to see if can parse entire imdb list file.
+	 * @throws IOException
+	 */
+	public void parsesFullIMDBList() throws IOException {
+		IMDBGraphImpl graphTest = new IMDBGraphImpl("actors.list", "actresses.list");
 		assertTrue(true);
 	}
 }

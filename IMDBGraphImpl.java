@@ -64,7 +64,7 @@ public class IMDBGraphImpl implements IMDBGraph {
 					if (!currentLine.contains("(TV)")
 							&& !currentLine.substring(0, 1).contains("\"")) {
 						IMDBNode newMovie = new IMDBNode(
-								currentLine.substring(0, currentLine.indexOf(")")));
+								currentLine.substring(0, currentLine.indexOf(")") + 1));
 						if (_movieGraph.get(newMovie.getName()) == null) {
 							_movieGraph.put(newMovie.getName(), newMovie);
 							newActor.addNeighbor(newMovie);

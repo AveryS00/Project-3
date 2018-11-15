@@ -12,12 +12,13 @@ public class GraphSearchEngineImpl implements GraphSearchEngine{
 		
 		nodesToVisit.add(s);
 		distanceFromS.put(s, 0);
-		while (nodesToVisit.size() < 0) {
+		while (nodesToVisit.size() > 0) {
 			Node n = nodesToVisit.poll();
 			visitedNodes.add(n);
-			if (n.equals(s)) {
+			if (n.equals(t)) {
 				path = new ArrayList<Node>();
-				for (int i = 0; i < distanceFromS.get(n); i++) {
+				int distance = distanceFromS.get(n);
+				for (int i = 0; i < distance; i++) {
 					path.add(n);
 					for (Node j : n.getNeighbors()) {
 						if (visitedNodes.contains(j) && distanceFromS.get(j) == distanceFromS.get(n) - 1) {
@@ -26,6 +27,7 @@ public class GraphSearchEngineImpl implements GraphSearchEngine{
 						}
 					}
 				}
+				path.add(s);
 				break;
 			} else {
 				//add all node neighbors to the nodesToVisit queue
@@ -37,6 +39,8 @@ public class GraphSearchEngineImpl implements GraphSearchEngine{
 				}
 			}
 		}
+		if (path != null)
+			Collections.reverse(path);
 		return path;
 	}
 }
