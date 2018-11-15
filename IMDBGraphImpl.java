@@ -28,27 +28,38 @@ public class IMDBGraphImpl implements IMDBGraph {
 		while (scanner.hasNextLine()) {
 
 			String currentLine = scanner.nextLine();
-			// final String currentActressString = _actressScanner.nextLine();
+			//skips to the line right before the list of actors begins, 
+			//identifies when parsing should begin through the beginParse boolean
 			if (currentLine.equals("----			------")) {
 				beginParse = true;
 			} else if (currentLine.equals("-----------------------------------------------------------------------------")) {
 				beginParse = false;
-			} else if (beginParse == true && !currentLine.equals("")) {
+			}
+			//checks to see if it is time to being or continue parsing code
+			//checks to see if the current line includes an actor 
+			else if (beginParse == true && !currentLine.equals("")) {
+				//checks to see if the currentLine is a movie-only line
 				if (!currentLine.substring(0, 1).equals("\t")) {
+					//checks to see if the current actor already exists and has only tv movies/ tv shows.
+					//if so, it is removed from the graph of actors
 					if (newActor != null && newActor.getNeighbors().isEmpty()) {
 						_actorGraph.remove(newActor.getName());
 					}
 					newActor = new IMDBNode(currentLine.substring(0, currentLine.indexOf("\t")));
 					_actorGraph.put(newActor.getName(), newActor);
 					currentLine = currentLine.substring(currentLine.indexOf("\t"));
+					//cleans up a line that does not include an actor causing currentLine to begin with the movie name
 					while (currentLine.contains("\t")) {
 						currentLine = currentLine.replaceFirst("\t", "");
 					}
+					//checks and skips over tv shows
 					if (!currentLine.contains("(TV)")
 							&& !currentLine.substring(0, 1).contains("\"")) {
 						IMDBNode newMovie = new IMDBNode(
 								currentLine.substring(0, currentLine.indexOf(")") + 1));
 						newMovie.addNeighbor(newActor);
+						//checks to see if the movie exits in the graph, 
+						//adds the node to the graph if it does and links newActor and newMovie
 						if (_movieGraph.get(newMovie.getName()) == null) {
 							_movieGraph.put(newMovie.getName(), newMovie);
 							newActor.addNeighbor(newMovie);
@@ -57,14 +68,18 @@ public class IMDBGraphImpl implements IMDBGraph {
 							newActor.addNeighbor(_movieGraph.get(newMovie.getName()));
 						}
 					}
-				} else {
+				}// case for if it is a movie line 
+				else {
 					while (currentLine.contains("\t")) {
 						currentLine = currentLine.replaceFirst("\t", "");
 					}
+					//checks to see if it is a tv movie/show
 					if (!currentLine.contains("(TV)")
 							&& !currentLine.substring(0, 1).contains("\"")) {
 						IMDBNode newMovie = new IMDBNode(
 								currentLine.substring(0, currentLine.indexOf(")") + 1));
+						//checks to see if the movie exits in the graph, 
+						//adds the node to the graph if it does and links newActor and newMovie
 						if (_movieGraph.get(newMovie.getName()) == null) {
 							_movieGraph.put(newMovie.getName(), newMovie);
 							newActor.addNeighbor(newMovie);
